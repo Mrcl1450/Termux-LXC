@@ -5,7 +5,8 @@
 pkg update
 pkg upgrade -y
 pkg install -y root-repo
-pkg install -y tsu nano mount-utils pulseaudio termux-tools dos2unix curl git iptables dnsmasq wget termux-x11-nightly
+pkg install -y x11-repo
+pkg install -y tsu nano mount-utils pulseaudio termux-tools dos2unix iptables dnsmasq iproute2 wget termux-x11-nightly
 
 termux-wake-lock
 
@@ -25,7 +26,7 @@ for cg in blkio cpu cpuacct cpuset devices freezer memory; do
    fi
 done
 
-echo "lxc.init.cmd = /sbin/init systemd.unified_cgroup_hierarchy=0" >> /$PREFIX/share/lxc/config/common.conf
+#echo "lxc.init.cmd = /sbin/init systemd.unified_cgroup_hierarchy=0" >> /$PREFIX/share/lxc/config/common.conf
 echo "lxc.cgroup.devices.allow = a *:* rwm" >> /$PREFIX/share/lxc/config/common.conf
 echo "lxc.cgroup.devices.allow = c 10:200 rwm" >> /$PREFIX/share/lxc/config/common.conf
 echo "lxc.mount.entry = /dev/fuse dev/fuse none bind,optional,create=file" >> /$PREFIX/share/lxc/config/common.conf
