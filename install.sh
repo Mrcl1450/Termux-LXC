@@ -57,7 +57,7 @@ echo "lxc.mount.entry = /dev/kgsl-3d0 dev/kgsl-3d0 none bind,optional,create=fil
 echo "lxc.mount.entry = /dev/dri dev/dri none bind,optional,create=dir" >> /$PREFIX/share/lxc/config/common.conf
 echo "lxc.mount.entry = /dev/dma_heap dev/dma_heap none bind,optional,create=dir" >> /$PREFIX/share/lxc/config/common.conf
 
-sudo lxc-create -t download -n ubuntu -d ubuntu -r noble -a arm64
+sudo lxc-create -t download -n ubuntu -- -d ubuntu -r noble -a arm64
 sudo lxc-start -n ubuntu
 sudo lxc-attach -n ubuntu /bin/passwd root
 sudo lxc-attach -n ubuntu /bin/login
