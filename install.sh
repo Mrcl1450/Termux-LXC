@@ -10,9 +10,9 @@ pkg install -y tsu nano mount-utils pulseaudio termux-tools dos2unix iptables dn
 
 termux-wake-lock
 
-wget https://github.com/Mrcl1450/Test1/releases/download/lxc/lxc-lts-6.0.2.deb
+wget https://github.com/Mrcl1450/Test1/releases/download/lxc/lxc-lts_6.0.2_aarch64.deb
 
-pkg install -y ./lxc-lts-6.0.2.deb
+pkg install -y ./lxc-lts_6.0.2_aarch64.deb
 
 sudo mount -t tmpfs -o mode=755 tmpfs /sys/fs/cgroup && sudo mkdir -p /sys/fs/cgroup/devices && sudo mount -t cgroup -o devices cgroup /sys/fs/cgroup/devices && sudo mkdir -p /sys/fs/cgroup/systemd && sudo mount -t cgroup cgroup -o none,name=systemd /sys/fs/cgroup/systemd
 
