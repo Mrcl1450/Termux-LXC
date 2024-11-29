@@ -48,23 +48,18 @@ pulseaudio --start \
     --load="module-native-protocol-tcp auth-ip-acl=127.0.0.1 auth-anonymous=1" \
     --exit-idle-time=-1
 
-# X11
 echo "lxc.mount.entry = /data/data/com.termux/files/usr/tmp tmp none bind,optional,create=dir" >> /$PREFIX/share/lxc/config/common.conf
-echo "lxc.mount.entry = /data/data/com.termux/files/usr/tmp/.X11-unix tmp/.X11-unix none bind,ro,optional,create=dir" >> /$PREFIX/share/lxc/config/common.conf
 
 # Freedreno Turnip (Only available for Qualcomm Snapdragon)
 echo "lxc.mount.entry = /dev/kgsl-3d0 dev/kgsl-3d0 none bind,optional,create=file" >> /$PREFIX/share/lxc/config/common.conf
 echo "lxc.mount.entry = /dev/dri dev/dri none bind,optional,create=dir" >> /$PREFIX/share/lxc/config/common.conf
 echo "lxc.mount.entry = /dev/dma_heap dev/dma_heap none bind,optional,create=dir" >> /$PREFIX/share/lxc/config/common.conf
 
-su
-cd /data/lxc
-source env.sh
-
 sudo lxc-create -t download -n ubuntu -- -d ubuntu -r noble -a arm64
 sudo lxc-start -n ubuntu
 sudo lxc-attach -n ubuntu /bin/passwd root
-sudo lxc-attach -n ubuntu /bin/login
+sudo lxc-stop -n ubuntu -K
+sudo lxc-start -n ubuntu -d -F
 
 
 
