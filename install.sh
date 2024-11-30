@@ -76,6 +76,10 @@ termux-x11 :1 &
 CONTAINER="ubuntu"; sudo bash -c "mkdir '${PREFIX}/var/lib/lxc/${CONTAINER}/rootfs/tmp/.X11-unix' 2>/dev/null; umount '${PREFIX}/var/lib/lxc/${CONTAINER}/rootfs/tmp/.X11-unix' 2>/dev/null; mount --bind '${PREFIX}/tmp/.X11-unix' '${PREFIX}/var/lib/lxc/${CONTAINER}/rootfs/tmp/.X11-unix'"
 
 sudo lxc-create -t download -n ubuntu -- -d ubuntu -r noble -a arm64
+
+sudo mount -B "/data/data/com.termux/files/usr/var/lib/lxc/ubuntu/rootfs" "/data/data/com.termux/files/usr/var/lib/lxc/ubuntu/rootfs"
+sudo mount -i -o remount,suid "/data/data/com.termux/files/usr/var/lib/lxc/ubuntu/rootfs"
+
 sudo lxc-start -n ubuntu
 sudo lxc-attach -n ubuntu /bin/passwd root
 
@@ -101,7 +105,7 @@ systemctl disable systemd-resolved
 
 # Update and install necessary packages
 apt update
-apt install -y xfce4 xfce4-session xfce4-terminal dbus-x11 wget squashfuse fuse
+apt install -y xfce4 xfce4-session xfce4-terminal dbus-x11 wget squashfuse fuse libllvm15
 
 #Adreno drivers
 wget https://github.com/Mrcl1450/Test1/releases/download/lxc/mesa-vulkan-kgsl_24.1.0-devel-20240120_arm64.deb
@@ -136,3 +140,5 @@ EOF
 
 sudo lxc-stop -n ubuntu -k
 sudo lxc-start -n ubuntu -d -F
+
+#sudo umount -Rl "/data/data/com.termux/files/usr/var/lib/lxc/ubuntu/rootfs"
