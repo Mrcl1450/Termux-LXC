@@ -36,7 +36,7 @@ echo "lxc.init.cmd = /sbin/init systemd.unified_cgroup_hierarchy=1" >> /$PREFIX/
 echo "lxc.cgroup.devices.allow = a *:* rwm" >> /$PREFIX/share/lxc/config/common.conf
 echo "lxc.cgroup.devices.allow = c 10:200 rwm" >> /$PREFIX/share/lxc/config/common.conf
 
-echo "features: mount=fuse,nesting=1" >> /$PREFIX/share/lxc/config/common.conf
+echo "features: mount=fuse,nesting=1,fuse=1" >> /$PREFIX/share/lxc/config/common.conf
 echo "lxc.mount.entry = /dev/fuse dev/fuse none bind,optional,create=file" >> /$PREFIX/share/lxc/config/common.conf
 
 echo "lxc.cap.drop =" >> /$PREFIX/share/lxc/config/common.conf
@@ -101,7 +101,11 @@ systemctl disable systemd-resolved
 
 # Update and install necessary packages
 apt update
-apt install -y xfce4 xfce4-session xfce4-terminal dbus-x11
+apt install -y xfce4 xfce4-session xfce4-terminal dbus-x11 wget squashfuse fuse
+
+#Adreno drivers
+wget https://github.com/Mrcl1450/Test1/releases/download/lxc/mesa-vulkan-kgsl_24.1.0-devel-20240120_arm64.deb
+dpkg -i mesa-vulkan-kgsl_24.1.0-devel-20240120_arm64.deb
 
 # Start XFCE session
 export DISPLAY=:1
