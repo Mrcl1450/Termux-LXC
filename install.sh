@@ -79,10 +79,13 @@ echo "lxc.mount.entry = /dev/ion dev/ion none bind,optional,create=dir" >> /$PRE
 
 echo "lxc.mount.entry = /var/log/journal var/log/journal none bind,optional,create=dir" >> /$PREFIX/share/lxc/config/common.conf
 
-echo "lxc.hook.pre-start = '/data/data/com.termux/files/home/Termux-LXC/pre-start.sh'" >> /$PREFIX/share/lxc/config/common.conf
-echo "lxc.hook.post-stop = '/data/data/com.termux/files/home/Termux-LXC/post-stop.sh'" >> /$PREFIX/share/lxc/config/common.conf
+echo "lxc.hook.pre-start = /data/data/com.termux/files/home/Termux-LXC/pre-start.sh" >> /$PREFIX/share/lxc/config/common.conf
+echo "lxc.hook.post-stop = /data/data/com.termux/files/home/Termux-LXC/post-stop.sh" >> /$PREFIX/share/lxc/config/common.conf
 
-termux-x11 :0 -&
+chmod +x /data/data/com.termux/files/home/Termux-LXC/pre-start.sh
+chmod +x /data/data/com.termux/files/home/Termux-LXC/post-stop.sh
+
+termux-x11 :0 &
 
 sudo lxc-create -t download -n ubuntu -- -d ubuntu -r oracular -a arm64
 
@@ -129,9 +132,9 @@ apt install -y wget nano squashfuse fuse libllvm15t64
 apt install -y snapd
 snap install snap-store
 
-adduser ubuntu
-passwd -d ubuntu
-usermod -aG sudo ubuntu
+adduser lxc
+passwd -d lxc
+usermod -aG sudo lxc
 
 # Create /etc/rc.local for persistent commands
 cat << 'RCL' > /etc/rc.local
