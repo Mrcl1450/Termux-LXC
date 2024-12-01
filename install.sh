@@ -79,7 +79,8 @@ echo "lxc.mount.entry = /dev/ion dev/ion none bind,optional,create=dir" >> /$PRE
 
 echo "lxc.mount.entry = /var/log/journal var/log/journal none bind,optional,create=dir" >> /$PREFIX/share/lxc/config/common.conf
 
-echo "lxc.hook.pre-start = "/data/data/com.termux/files/home/Termux-LXC/pre-start.sh" >> /$PREFIX/share/lxc/config/common.conf
+echo "lxc.hook.pre-start = '/data/data/com.termux/files/home/Termux-LXC/pre-start.sh'" >> /$PREFIX/share/lxc/config/common.conf
+echo "lxc.hook.post-stop = '/data/data/com.termux/files/home/Termux-LXC/post-stop.sh'" >> /$PREFIX/share/lxc/config/common.conf
 
 termux-x11 :0 -&
 
@@ -160,6 +161,3 @@ sudo lxc-stop -n ubuntu -k
 #sudo lxc-start -n ubuntu -d -F
 
 #Restart Device if no internet
-
-#Todo: exec after container shutdown
-#sudo umount -Rl "/data/data/com.termux/files/usr/var/lib/lxc/ubuntu/rootfs"
