@@ -119,7 +119,7 @@ systemctl disable systemd-resolved
 
 # Update and install necessary packages
 apt update
-apt install -y wget nano squashfuse fuse libllvm15
+apt install -y wget nano squashfuse fuse libllvm15t64
 
 apt install -y snapd
 snap install snap-store
@@ -148,9 +148,6 @@ cat << 'RCL' > /etc/rc.local
 sudo chmod 644 /run/systemd/system/systemd-networkd-wait-online.service.d/10-netplan.conf
 sudo chmod 644 /run/systemd/system/netplan-ovs-cleanup.service
 
-sudo rm -f /etc/resolv.conf
-echo "nameserver 8.8.8.8" > /etc/resolv.conf
-
 export PULSE_SERVER=127.0.0.1:4713
 pulseaudio --start --load="module-native-protocol-tcp auth-ip-acl=127.0.0.1 auth-anonymous=1" --exit-idle-time=-1
 
@@ -170,5 +167,7 @@ sudo lxc-attach -n ubuntu -- /usr/bin/bash /tmp/setup-lxc.sh
 
 sudo lxc-stop -n ubuntu -k
 sudo lxc-start -n ubuntu -d -F
+
+#Restart Device if no internet
 
 #sudo umount -Rl "/data/data/com.termux/files/usr/var/lib/lxc/ubuntu/rootfs"
