@@ -7,7 +7,7 @@ pkg upgrade -y
 pkg install -y root-repo
 pkg install -y x11-repo
 pkg install -y tur-repo
-pkg install -y tsu nano mount-utils pulseaudio termux-tools iptables dnsmasq iproute2 wget termux-x11-nightly mesa-zink virglrenderer-mesa-zink vulkan-loader-android
+pkg install -y tsu nano mount-utils pulseaudio termux-tools iptables dnsmasq iproute2 wget termux-x11-nightly
 
 sudo setenforce 0
 
@@ -79,15 +79,14 @@ echo "lxc.mount.entry = /dev/ion dev/ion none bind,optional,create=dir" >> /$PRE
 
 echo "lxc.mount.entry = /var/log/journal var/log/journal none bind,optional,create=dir" >> /$PREFIX/share/lxc/config/common.conf
 
-MESA_LOADER_DRIVER_OVERRIDE=zink GALLIUM_DRIVER=zink ZINK_DESCRIPTORS=lazy virgl_test_server --use-egl-surfaceless &
-XDG_RUNTIME_DIR=${TMPDIR} termux-x11 :0 -ac &
+termux-x11 :0 -&
 
 sudo lxc-create -t download -n ubuntu -- -d ubuntu -r oracular -a arm64
 
 sudo mount -B "/data/data/com.termux/files/usr/var/lib/lxc/ubuntu/rootfs" "/data/data/com.termux/files/usr/var/lib/lxc/ubuntu/rootfs"
 sudo mount -i -o remount,suid "/data/data/com.termux/files/usr/var/lib/lxc/ubuntu/rootfs"
 
-CONTAINER="ubuntu"; sudo bash -c "mkdir '${PREFIX}/var/lib/lxc/${CONTAINER}/rootfs/tmp/.X11-unix' 2>/dev/null; umount '${PREFIX}/var/lib/lxc/${CONTAINER}/rootfs/tmp/.X11-unix' 2>/dev/null; mount --bind '${PREFIX}/tmp/.X11-unix' '${PREFIX}/var/lib/lxc/${CONTAINER}/rootfs/tmp/.X11-unix'"
+#CONTAINER="ubuntu"; sudo bash -c "mkdir '${PREFIX}/var/lib/lxc/${CONTAINER}/rootfs/tmp/.X11-unix' 2>/dev/null; umount '${PREFIX}/var/lib/lxc/${CONTAINER}/rootfs/tmp/.X11-unix' 2>/dev/null; mount --bind '${PREFIX}/tmp/.X11-unix' '${PREFIX}/var/lib/lxc/${CONTAINER}/rootfs/tmp/.X11-unix'"
 
 unset LD_PRELOAD
 
@@ -117,6 +116,9 @@ echo "nameserver 8.8.8.8" > /etc/resolv.conf
 systemctl stop systemd-resolved
 systemctl disable systemd-resolved
 
+apt-mark hold network-manager
+apt install -y xfce4 xfce4-session xfce4-terminal dbus-x11
+
 # Update and install necessary packages
 apt update
 apt install -y wget nano squashfuse fuse libllvm15t64
@@ -124,22 +126,8 @@ apt install -y wget nano squashfuse fuse libllvm15t64
 apt install -y snapd
 snap install snap-store
 
-apt-mark hold network-manager
-apt install -y xfce4 xfce4-session xfce4-terminal dbus-x11
-
-#PulseAudio
-export PULSE_SERVER=127.0.0.1:4713
-pulseaudio --start --load="module-native-protocol-tcp auth-ip-acl=127.0.0.1 auth-anonymous=1" --exit-idle-time=-1
-
-# Start XFCE session
-export DISPLAY=:0
-dbus-launch --exit-with-session GALLIUM_DRIVER=virpipe MESA_GL_VERSION_OVERRIDE=4.0 startxfce4 &
-
-#Disable NetworkManager
-systemctl stop NetworkManager
-systemctl disable NetworkManager
-
 adduser ubuntu
+passwd -d ubuntu
 usermod -aG sudo ubuntu
 
 # Create /etc/rc.local for persistent commands
@@ -152,7 +140,7 @@ export PULSE_SERVER=127.0.0.1:4713
 pulseaudio --start --load="module-native-protocol-tcp auth-ip-acl=127.0.0.1 auth-anonymous=1" --exit-idle-time=-1
 
 export DISPLAY=:0
-dbus-launch --exit-with-session GALLIUM_DRIVER=virpipe MESA_GL_VERSION_OVERRIDE=4.0 startxfce4 &
+dbus-launch --exit-with-session startxfce4 &
 
 exit 0
 RCL
@@ -163,11 +151,13 @@ systemctl enable rc-local.service
 EOF
 
 sudo mv setup-lxc.sh /data/data/com.termux/files/usr/tmp/
-sudo lxc-attach -n ubuntu -- /usr/bin/bash /tmp/setup-lxc.sh
+#Doesn't work for now. Run inside container
+#sudo lxc-attach -n ubuntu -- /usr/bin/bash /tmp/setup-lxc.sh
 
 sudo lxc-stop -n ubuntu -k
-sudo lxc-start -n ubuntu -d -F
+#sudo lxc-start -n ubuntu -d -F
 
 #Restart Device if no internet
 
+#Todo: exec after container shutdown
 #sudo umount -Rl "/data/data/com.termux/files/usr/var/lib/lxc/ubuntu/rootfs"
