@@ -11,8 +11,10 @@ pkg install -y tsu nano mount-utils pulseaudio termux-tools iptables dnsmasq ipr
 termux-wake-lock
 
 wget https://github.com/Mrcl1450/Test1/releases/download/lxc/lxc-lts_6.0.2_aarch64.deb
-
 pkg install -y ./lxc-lts_6.0.2_aarch64.deb
+
+wget https://github.com/Mrcl1450/Test1/releases/download/lxc/mesa-vulkan-kgsl_24.1.0-devel-20240120_arm64.deb
+pkg install -y mesa-vulkan-kgsl_24.1.0-devel-20240120_arm64.deb
 
 #cgroupv1
 #sudo mount -t tmpfs -o mode=755 tmpfs /sys/fs/cgroup && sudo mkdir -p /sys/fs/cgroup/devices && sudo mount -t cgroup -o devices cgroup /sys/fs/cgroup/devices && sudo mkdir -p /sys/fs/cgroup/systemd && sudo mount -t cgroup cgroup -o none,name=systemd /sys/fs/cgroup/systemd
@@ -63,6 +65,9 @@ pulseaudio --start \
 echo "lxc.mount.entry = /data/data/com.termux/files/usr/tmp tmp none bind,optional,create=dir" >> /$PREFIX/share/lxc/config/common.conf
 echo "lxc.mount.entry = /data/data/com.termux/files/usr/tmp/.X11-unix tmp/.X11-unix none bind,ro,optional,create=dir" >> /$PREFIX/share/lxc/config/common.conf
 
+echo "lxc.mount.entry = /dev/shm dev/shm none bind,optional,create=dir" >> /$PREFIX/share/lxc/config/common.conf
+echo "lxc.mount.entry = /dev/tty dev/tty none bind,optional,create=file" >> /$PREFIX/share/lxc/config/common.conf
+
 # Freedreno Turnip (Only available for Qualcomm Snapdragon)
 echo "lxc.mount.entry = /dev/kgsl-3d0 dev/kgsl-3d0 none bind,optional,create=file" >> /$PREFIX/share/lxc/config/common.conf
 echo "lxc.mount.entry = /dev/dri dev/dri none bind,optional,create=dir" >> /$PREFIX/share/lxc/config/common.conf
@@ -105,31 +110,47 @@ systemctl disable systemd-resolved
 
 # Update and install necessary packages
 apt update
-apt install -y xfce4 xfce4-session xfce4-terminal dbus-x11 wget squashfuse fuse libllvm15
-
-#Adreno drivers
-wget https://github.com/Mrcl1450/Test1/releases/download/lxc/mesa-vulkan-kgsl_24.1.0-devel-20240120_arm64.deb
-dpkg -i mesa-vulkan-kgsl_24.1.0-devel-20240120_arm64.deb
+#apt install -y xfce4 xfce4-session xfce4-terminal dbus-x11 wget squashfuse fuse libllvm15
+apt install -y ubuntu-desktop dbus-x11 wget squashfuse fuse libllvm15
 
 # Start XFCE session
 export DISPLAY=:1
-dbus-launch --exit-with-session xfce4-session 2>/dev/null >/dev/null &
+export XDG_CURRENT_DESKTOP="GNOME"
+#dbus-launch --exit-with-session xfce4-session 2>/dev/null >/dev/null &
+dbus-launch --exit-with-session gnome-shell -x11 2>/dev/null >/dev/null &
+
+#Disable NetworkManager
+systemctl stop NetworkManager
+systemctl disable NetworkManager
 
 #PulseAudio
 export PULSE_SERVER=127.0.0.1:4713
 pulseaudio --start --load="module-native-protocol-tcp auth-ip-acl=127.0.0.1 auth-anonymous=1" --exit-idle-time=-1
 
-adduser ubuntu
-usermod -aG sudo ubuntu
+#adduser ubuntu
+#usermod -aG sudo ubuntu
+
+groupadd storage
+groupadd wheel
+useradd -m -g users -s /bin/bash ubuntu
+usermod -aG wheel,polkitd,audio,video,storage ubuntu
+echo "ubuntu ALL=(ALL:ALL) ALL" | tee -a /etc/sudoers
 
 # Create /etc/rc.local for persistent commands
 cat << 'RCL' > /etc/rc.local
 #!/bin/bash
+sudo chmod 644 /run/systemd/system/systemd-networkd-wait-online.service.d/10-netplan.conf
+sudo chmod 644 /run/systemd/system/netplan-ovs-cleanup.service
+
 echo "nameserver 8.8.8.8" > /etc/resolv.conf
+
 export DISPLAY=:1
-dbus-launch --exit-with-session xfce4-session 2>/dev/null >/dev/null &
+export XDG_CURRENT_DESKTOP="GNOME"
+dbus-launch --exit-with-session gnome-shell -x11 2>/dev/null >/dev/null &
+
 export PULSE_SERVER=127.0.0.1:4713
 pulseaudio --start --load="module-native-protocol-tcp auth-ip-acl=127.0.0.1 auth-anonymous=1" --exit-idle-time=-1
+
 exit 0
 RCL
 
