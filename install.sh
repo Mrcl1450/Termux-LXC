@@ -13,8 +13,8 @@ termux-wake-lock
 wget https://github.com/Mrcl1450/Test1/releases/download/lxc/lxc-lts_6.0.2_aarch64.deb
 pkg install -y ./lxc-lts_6.0.2_aarch64.deb
 
-wget https://github.com/Mrcl1450/Test1/releases/download/lxc/mesa-vulkan-kgsl_24.1.0-devel-20240120_arm64.deb
-pkg install -y mesa-vulkan-kgsl_24.1.0-devel-20240120_arm64.deb
+#wget https://github.com/Mrcl1450/Test1/releases/download/lxc/mesa-vulkan-kgsl_24.1.0-devel-20240120_arm64.deb
+#pkg install -y mesa-vulkan-kgsl_24.1.0-devel-20240120_arm64.deb
 
 #cgroupv1
 #sudo mount -t tmpfs -o mode=755 tmpfs /sys/fs/cgroup && sudo mkdir -p /sys/fs/cgroup/devices && sudo mount -t cgroup -o devices cgroup /sys/fs/cgroup/devices && sudo mkdir -p /sys/fs/cgroup/systemd && sudo mount -t cgroup cgroup -o none,name=systemd /sys/fs/cgroup/systemd
@@ -127,14 +127,8 @@ systemctl disable NetworkManager
 export PULSE_SERVER=127.0.0.1:4713
 pulseaudio --start --load="module-native-protocol-tcp auth-ip-acl=127.0.0.1 auth-anonymous=1" --exit-idle-time=-1
 
-#adduser ubuntu
-#usermod -aG sudo ubuntu
-
-groupadd storage
-groupadd wheel
-useradd -m -g users -s /bin/bash ubuntu
-usermod -aG wheel,polkitd,audio,video,storage ubuntu
-echo "ubuntu ALL=(ALL:ALL) ALL" | tee -a /etc/sudoers
+adduser ubuntu
+usermod -aG sudo ubuntu
 
 # Create /etc/rc.local for persistent commands
 cat << 'RCL' > /etc/rc.local
