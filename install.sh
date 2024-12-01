@@ -79,6 +79,8 @@ echo "lxc.mount.entry = /dev/ion dev/ion none bind,optional,create=dir" >> /$PRE
 
 echo "lxc.mount.entry = /var/log/journal var/log/journal none bind,optional,create=dir" >> /$PREFIX/share/lxc/config/common.conf
 
+echo "lxc.hook.pre-start = "/data/data/com.termux/files/home/Termux-LXC/pre-start.sh" >> /$PREFIX/share/lxc/config/common.conf
+
 termux-x11 :0 -&
 
 sudo lxc-create -t download -n ubuntu -- -d ubuntu -r oracular -a arm64
