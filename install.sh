@@ -6,7 +6,10 @@ pkg update
 pkg upgrade -y
 pkg install -y root-repo
 pkg install -y x11-repo
-pkg install -y tsu nano mount-utils pulseaudio termux-tools iptables dnsmasq iproute2 wget termux-x11-nightly
+pkg install -y tur-repo
+pkg install -y tsu nano mount-utils pulseaudio termux-tools iptables dnsmasq iproute2 wget termux-x11-nightly mesa-zink virglrenderer-mesa-zink vulkan-loader-android
+
+sudo setenforce 0
 
 termux-wake-lock
 
@@ -76,19 +79,23 @@ echo "lxc.mount.entry = /dev/ion dev/ion none bind,optional,create=dir" >> /$PRE
 
 echo "lxc.mount.entry = /var/log/journal var/log/journal none bind,optional,create=dir" >> /$PREFIX/share/lxc/config/common.conf
 
-termux-x11 :1 &
+MESA_LOADER_DRIVER_OVERRIDE=zink GALLIUM_DRIVER=zink ZINK_DESCRIPTORS=lazy virgl_test_server --use-egl-surfaceless &
+XDG_RUNTIME_DIR=${TMPDIR} termux-x11 :0 -ac &
 
-CONTAINER="ubuntu"; sudo bash -c "mkdir '${PREFIX}/var/lib/lxc/${CONTAINER}/rootfs/tmp/.X11-unix' 2>/dev/null; umount '${PREFIX}/var/lib/lxc/${CONTAINER}/rootfs/tmp/.X11-unix' 2>/dev/null; mount --bind '${PREFIX}/tmp/.X11-unix' '${PREFIX}/var/lib/lxc/${CONTAINER}/rootfs/tmp/.X11-unix'"
-
-sudo lxc-create -t download -n ubuntu -- -d ubuntu -r noble -a arm64
+sudo lxc-create -t download -n ubuntu -- -d ubuntu -r oracular -a arm64
 
 sudo mount -B "/data/data/com.termux/files/usr/var/lib/lxc/ubuntu/rootfs" "/data/data/com.termux/files/usr/var/lib/lxc/ubuntu/rootfs"
 sudo mount -i -o remount,suid "/data/data/com.termux/files/usr/var/lib/lxc/ubuntu/rootfs"
 
+CONTAINER="ubuntu"; sudo bash -c "mkdir '${PREFIX}/var/lib/lxc/${CONTAINER}/rootfs/tmp/.X11-unix' 2>/dev/null; umount '${PREFIX}/var/lib/lxc/${CONTAINER}/rootfs/tmp/.X11-unix' 2>/dev/null; mount --bind '${PREFIX}/tmp/.X11-unix' '${PREFIX}/var/lib/lxc/${CONTAINER}/rootfs/tmp/.X11-unix'"
+
+unset LD_PRELOAD
+
 sudo lxc-start -n ubuntu
 sudo lxc-attach -n ubuntu /bin/passwd root
 
-sudo lxc-attach -n ubuntu /bin/bash << 'EOF'
+cat << 'EOF' > setup-lxc.sh
+#!/bin/bash
 # Backup the original udevadm binary
 if [ ! -e /usr/bin/udevadm.original ]; then
   mv /usr/bin/udevadm /usr/bin/udevadm.original
@@ -102,30 +109,35 @@ WRAPPER
 
 # Set the correct permissions
 chmod 755 /usr/bin/udevadm
+chmod -R 777 /tmp
 
 # Set nameserver
+sudo rm -f /etc/resolv.conf
 echo "nameserver 8.8.8.8" > /etc/resolv.conf
 systemctl stop systemd-resolved
 systemctl disable systemd-resolved
 
 # Update and install necessary packages
 apt update
-#apt install -y xfce4 xfce4-session xfce4-terminal dbus-x11 wget squashfuse fuse libllvm15
-apt install -y ubuntu-desktop dbus-x11 wget squashfuse fuse libllvm15
+apt install -y wget nano squashfuse fuse libllvm15
 
-# Start XFCE session
-export DISPLAY=:1
-export XDG_CURRENT_DESKTOP="GNOME"
-#dbus-launch --exit-with-session xfce4-session 2>/dev/null >/dev/null &
-dbus-launch --exit-with-session gnome-shell -x11 2>/dev/null >/dev/null &
+apt install -y snapd
+snap install snap-store
 
-#Disable NetworkManager
-systemctl stop NetworkManager
-systemctl disable NetworkManager
+apt-mark hold network-manager
+apt install -y xfce4 xfce4-session xfce4-terminal dbus-x11
 
 #PulseAudio
 export PULSE_SERVER=127.0.0.1:4713
 pulseaudio --start --load="module-native-protocol-tcp auth-ip-acl=127.0.0.1 auth-anonymous=1" --exit-idle-time=-1
+
+# Start XFCE session
+export DISPLAY=:0
+dbus-launch --exit-with-session GALLIUM_DRIVER=virpipe MESA_GL_VERSION_OVERRIDE=4.0 startxfce4 &
+
+#Disable NetworkManager
+systemctl stop NetworkManager
+systemctl disable NetworkManager
 
 adduser ubuntu
 usermod -aG sudo ubuntu
@@ -136,14 +148,14 @@ cat << 'RCL' > /etc/rc.local
 sudo chmod 644 /run/systemd/system/systemd-networkd-wait-online.service.d/10-netplan.conf
 sudo chmod 644 /run/systemd/system/netplan-ovs-cleanup.service
 
+sudo rm -f /etc/resolv.conf
 echo "nameserver 8.8.8.8" > /etc/resolv.conf
-
-export DISPLAY=:1
-export XDG_CURRENT_DESKTOP="GNOME"
-dbus-launch --exit-with-session gnome-shell -x11 2>/dev/null >/dev/null &
 
 export PULSE_SERVER=127.0.0.1:4713
 pulseaudio --start --load="module-native-protocol-tcp auth-ip-acl=127.0.0.1 auth-anonymous=1" --exit-idle-time=-1
+
+export DISPLAY=:0
+dbus-launch --exit-with-session GALLIUM_DRIVER=virpipe MESA_GL_VERSION_OVERRIDE=4.0 startxfce4 &
 
 exit 0
 RCL
@@ -152,6 +164,9 @@ RCL
 chmod +x /etc/rc.local
 systemctl enable rc-local.service
 EOF
+
+sudo mv setup-lxc.sh /data/data/com.termux/files/usr/tmp/
+sudo lxc-attach -n ubuntu -- /usr/bin/bash /tmp/setup-lxc.sh
 
 sudo lxc-stop -n ubuntu -k
 sudo lxc-start -n ubuntu -d -F
