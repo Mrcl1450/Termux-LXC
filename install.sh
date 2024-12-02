@@ -159,4 +159,4 @@ sudo mv ~/Termux-LXC/startubuntu /data/data/com.termux/files/usr/bin/
 
 #sudo lxc-start -n ubuntu -d -F
 
-#Restart Device if no internet
+#Reconnect Wifi if no internet
