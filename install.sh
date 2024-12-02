@@ -176,7 +176,7 @@ sudo mv setup-lxc.sh /data/data/com.termux/files/usr/tmp/
 sudo lxc-stop -n ubuntu -k
 
 sudo chmod +x ~/Termux-LXC/startubuntu
-sudo mv ~/Termux-LXC/startubuntu /usr/local/bin/
+sudo mv ~/Termux-LXC/startubuntu /data/data/com.termux/files/usr/bin/
 
 #sudo lxc-start -n ubuntu -d -F
 
