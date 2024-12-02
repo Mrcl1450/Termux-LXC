@@ -16,9 +16,6 @@ termux-wake-lock
 wget https://github.com/Mrcl1450/Test1/releases/download/lxc/lxc-lts_6.0.2_aarch64.deb
 pkg install -y ./lxc-lts_6.0.2_aarch64.deb
 
-#wget https://github.com/Mrcl1450/Test1/releases/download/lxc/mesa-vulkan-kgsl_24.1.0-devel-20240120_arm64.deb
-#pkg install -y mesa-vulkan-kgsl_24.1.0-devel-20240120_arm64.deb
-
 #cgroupv1
 #sudo mount -t tmpfs -o mode=755 tmpfs /sys/fs/cgroup && sudo mkdir -p /sys/fs/cgroup/devices && sudo mount -t cgroup -o devices cgroup /sys/fs/cgroup/devices && sudo mkdir -p /sys/fs/cgroup/systemd && sudo mount -t cgroup cgroup -o none,name=systemd /sys/fs/cgroup/systemd
 
@@ -85,14 +82,14 @@ echo "lxc.hook.post-stop = /data/data/com.termux/files/home/Termux-LXC/post-stop
 chmod +x /data/data/com.termux/files/home/Termux-LXC/pre-start.sh
 chmod +x /data/data/com.termux/files/home/Termux-LXC/post-stop.sh
 
-termux-x11 :0 &
+termux-x11 :0 -ac -extension MIT-SHM &
 
 sudo lxc-create -t download -n ubuntu -- -d ubuntu -r oracular -a arm64
 
 sudo mount -B "/data/data/com.termux/files/usr/var/lib/lxc/ubuntu/rootfs" "/data/data/com.termux/files/usr/var/lib/lxc/ubuntu/rootfs"
 sudo mount -i -o remount,suid "/data/data/com.termux/files/usr/var/lib/lxc/ubuntu/rootfs"
 
-#CONTAINER="ubuntu"; sudo bash -c "mkdir '${PREFIX}/var/lib/lxc/${CONTAINER}/rootfs/tmp/.X11-unix' 2>/dev/null; umount '${PREFIX}/var/lib/lxc/${CONTAINER}/rootfs/tmp/.X11-unix' 2>/dev/null; mount --bind '${PREFIX}/tmp/.X11-unix' '${PREFIX}/var/lib/lxc/${CONTAINER}/rootfs/tmp/.X11-unix'"
+CONTAINER="ubuntu"; sudo bash -c "mkdir '${PREFIX}/var/lib/lxc/${CONTAINER}/rootfs/tmp/.X11-unix' 2>/dev/null; umount '${PREFIX}/var/lib/lxc/${CONTAINER}/rootfs/tmp/.X11-unix' 2>/dev/null; mount --bind '${PREFIX}/tmp/.X11-unix' '${PREFIX}/var/lib/lxc/${CONTAINER}/rootfs/tmp/.X11-unix'"
 
 unset LD_PRELOAD
 
@@ -123,14 +120,26 @@ systemctl stop systemd-resolved
 systemctl disable systemd-resolved
 
 apt-mark hold network-manager
-apt install -y xfce4 xfce4-session xfce4-terminal dbus-x11
+#apt install -y xfce4 xfce4-session xfce4-terminal dbus-x11
+
+apt install -y mate-desktop-environment mate-terminal mate-tweak
+apt install -y yaru-theme-gtk yaru-theme-icon ubuntu-wallpapers dconf-cli
 
 # Update and install necessary packages
 apt update
-apt install -y wget nano squashfuse fuse libllvm15t64
+apt install -y wget nano squashfuse fuse
 
 apt install -y snapd
 snap install snap-store
+
+apt install -y software-properties-common
+add-apt-repository ppa:mastag/mesa-turnip-kgsl
+apt update
+apt -y dist-upgrade
+
+echo "MESA_LOADER_DRIVER_OVERRIDE=zink" >> /etc/environment
+echo "VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/freedreno_icd.aarch64.json:/usr/share/vulkan/icd.d/freedreno_icd.armv7l.json" >> /etc/environment
+echo "TU_DEBUG=noconform" >> /etc/environment
 
 adduser lxc
 passwd -d lxc
@@ -146,7 +155,7 @@ export PULSE_SERVER=127.0.0.1:4713
 pulseaudio --start --load="module-native-protocol-tcp auth-ip-acl=127.0.0.1 auth-anonymous=1" --exit-idle-time=-1
 
 export DISPLAY=:0
-dbus-launch --exit-with-session startxfce4 &
+dbus-launch --exit-with-session mate-session &
 
 exit 0
 RCL
