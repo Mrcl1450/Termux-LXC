@@ -89,9 +89,6 @@ CONTAINER="ubuntu"; sudo bash -c "mkdir '${PREFIX}/var/lib/lxc/${CONTAINER}/root
 
 unset LD_PRELOAD
 
-sudo lxc-start -n ubuntu
-
-sudo chmod +x /data/data/com.termux/files/home/Termux-LXC/pre-start.sh
 sudo chmod +x /data/data/com.termux/files/home/Termux-LXC/post-stop.sh
 
 sudo lxc-start -n ubuntu
