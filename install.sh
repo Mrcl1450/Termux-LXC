@@ -80,7 +80,7 @@ echo "lxc.hook.post-stop = /data/data/com.termux/files/home/Termux-LXC/post-stop
 
 termux-x11 :0 -ac -extension MIT-SHM &
 
-sudo lxc-create -t download -n ubuntu -- -d ubuntu -r noble -a arm64
+sudo lxc-create -t download -n ubuntu -- -d ubuntu -r oracular -a arm64
 
 sudo mount -B "/data/data/com.termux/files/usr/var/lib/lxc/ubuntu/rootfs" "/data/data/com.termux/files/usr/var/lib/lxc/ubuntu/rootfs"
 sudo mount -i -o remount,suid "/data/data/com.termux/files/usr/var/lib/lxc/ubuntu/rootfs"
@@ -112,7 +112,9 @@ WRAPPER
 
 # Set the correct permissions
 chmod 755 /usr/bin/udevadm
-chmod -R 777 /tmp
+
+chmod 644 /run/systemd/system/systemd-networkd-wait-online.service.d/10-netplan.conf
+chmod 644 /run/systemd/system/netplan-ovs-cleanup.service
 
 # Set nameserver
 sudo rm -f /etc/resolv.conf
@@ -120,15 +122,13 @@ echo "nameserver 8.8.8.8" > /etc/resolv.conf
 systemctl stop systemd-resolved
 systemctl disable systemd-resolved
 
-apt-mark hold network-manager
-#apt install -y xfce4 xfce4-session xfce4-terminal dbus-x11
-
-apt install -y pulseaudio gnome-shell gnome-shell-extension-ubuntu-dock gnome-shell-extensions gnome-terminal gnome-session
-apt install -y yaru-theme-gtk yaru-theme-icon gnome-tweaks dbus-x11 nautilus
-
 # Update and install necessary packages
 apt update
-apt install -y wget nano squashfuse fuse fuse3
+apt install -y wget nano squashfuse fuse
+
+apt-mark hold network-manager
+apt install -y mate-desktop-environment-extras mate-terminal mate-tweak lightdm lightdm-gtk-greeter
+apt install -y yaru-theme-gtk yaru-theme-icon ubuntu-wallpapers dconf-cli
 
 apt install -y snapd
 snap install snap-store
@@ -141,32 +141,14 @@ echo "MESA_LOADER_DRIVER_OVERRIDE=zink" >> /etc/environment
 echo "VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/freedreno_icd.aarch64.json:/usr/share/vulkan/icd.d/freedreno_icd.armv7l.json" >> /etc/environment
 echo "TU_DEBUG=noconform" >> /etc/environment
 
+echo "PULSE_SERVER=127.0.0.1:4713" >> /etc/environment
+echo "DISPLAY=:0" >> /etc/environment
+
 adduser lxc
-passwd -d lxc
 usermod -aG sudo lxc
 
-# Create /etc/rc.local for persistent commands
-cat << 'RCL' > /etc/rc.local
-#!/bin/bash
-sudo chmod 644 /run/systemd/system/systemd-networkd-wait-online.service.d/10-netplan.conf
-sudo chmod 644 /run/systemd/system/netplan-ovs-cleanup.service
-
-export XDG_SESSION_TYPE=x11
-export XDG_CURRENT_DESKTOP=GNOME
-export GNOME_SHELL_SESSION_MODE=ubuntu
-
-export PULSE_SERVER=127.0.0.1:4713
-pulseaudio --start --load="module-native-protocol-tcp auth-ip-acl=127.0.0.1 auth-anonymous=1" --exit-idle-time=-1
-
-export DISPLAY=:0
-dbus-launch --exit-with-session gnome-session &
-
-exit 0
-RCL
-
-# Make rc.local executable and enable it
-chmod +x /etc/rc.local
-systemctl enable rc-local.service
+#pulseaudio --start --load="module-native-protocol-tcp auth-ip-acl=127.0.0.1 auth-anonymous=1" --exit-idle-time=-1
+#dbus-launch --exit-with-session mate-session &
 EOF
 
 sudo mv setup-lxc.sh /data/data/com.termux/files/usr/tmp/
