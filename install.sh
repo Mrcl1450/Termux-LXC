@@ -134,6 +134,8 @@ wget https://github.com/Mrcl1450/mesa-turnip/raw/main/build_deb_mesa.sh
 bash build_deb_mesa.sh
 rm build_deb_mesa.sh
 
+apt install ./Desktop/mesa-vulkan-kgsl_*_arm64.deb
+
 echo "MESA_LOADER_DRIVER_OVERRIDE=zink" >> /etc/environment
 echo "VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/freedreno_icd.aarch64.json:/usr/share/vulkan/icd.d/freedreno_icd.armv7l.json" >> /etc/environment
 echo "TU_DEBUG=noconform" >> /etc/environment
