@@ -79,9 +79,6 @@ echo "lxc.mount.entry = /var/log/journal var/log/journal none bind,optional,crea
 echo "lxc.hook.pre-start = /data/data/com.termux/files/home/Termux-LXC/pre-start.sh" >> /$PREFIX/share/lxc/config/common.conf
 echo "lxc.hook.post-stop = /data/data/com.termux/files/home/Termux-LXC/post-stop.sh" >> /$PREFIX/share/lxc/config/common.conf
 
-chmod +x /data/data/com.termux/files/home/Termux-LXC/pre-start.sh
-chmod +x /data/data/com.termux/files/home/Termux-LXC/post-stop.sh
-
 termux-x11 :0 -ac -extension MIT-SHM &
 
 sudo lxc-create -t download -n ubuntu -- -d ubuntu -r oracular -a arm64
@@ -92,6 +89,9 @@ sudo mount -i -o remount,suid "/data/data/com.termux/files/usr/var/lib/lxc/ubunt
 CONTAINER="ubuntu"; sudo bash -c "mkdir '${PREFIX}/var/lib/lxc/${CONTAINER}/rootfs/tmp/.X11-unix' 2>/dev/null; umount '${PREFIX}/var/lib/lxc/${CONTAINER}/rootfs/tmp/.X11-unix' 2>/dev/null; mount --bind '${PREFIX}/tmp/.X11-unix' '${PREFIX}/var/lib/lxc/${CONTAINER}/rootfs/tmp/.X11-unix'"
 
 unset LD_PRELOAD
+
+sudo chmod +x /data/data/com.termux/files/home/Termux-LXC/pre-start.sh
+sudo chmod +x /data/data/com.termux/files/home/Termux-LXC/post-stop.sh
 
 sudo lxc-start -n ubuntu
 sudo lxc-attach -n ubuntu /bin/passwd root
