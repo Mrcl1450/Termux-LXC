@@ -123,12 +123,12 @@ systemctl disable systemd-resolved
 apt-mark hold network-manager
 #apt install -y xfce4 xfce4-session xfce4-terminal dbus-x11
 
-apt install -y gnome-shell gnome-shell-extension-ubuntu-dock gnome-shell-extensions gnome-terminal gnome-session
+apt install -y pulseaudio gnome-shell gnome-shell-extension-ubuntu-dock gnome-shell-extensions gnome-terminal gnome-session
 apt install -y yaru-theme-gtk yaru-theme-icon gnome-tweaks dbus-x11 nautilus
 
 # Update and install necessary packages
 apt update
-apt install -y wget nano squashfuse fuse
+apt install -y wget nano squashfuse fuse fuse3
 
 apt install -y snapd
 snap install snap-store
