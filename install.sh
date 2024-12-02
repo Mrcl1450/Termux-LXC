@@ -76,7 +76,6 @@ echo "lxc.mount.entry = /dev/ion dev/ion none bind,optional,create=dir" >> /$PRE
 
 echo "lxc.mount.entry = /var/log/journal var/log/journal none bind,optional,create=dir" >> /$PREFIX/share/lxc/config/common.conf
 
-echo "lxc.hook.pre-start = /data/data/com.termux/files/home/Termux-LXC/pre-start.sh" >> /$PREFIX/share/lxc/config/common.conf
 echo "lxc.hook.post-stop = /data/data/com.termux/files/home/Termux-LXC/post-stop.sh" >> /$PREFIX/share/lxc/config/common.conf
 
 termux-x11 :0 -ac -extension MIT-SHM &
@@ -89,6 +88,8 @@ sudo mount -i -o remount,suid "/data/data/com.termux/files/usr/var/lib/lxc/ubunt
 CONTAINER="ubuntu"; sudo bash -c "mkdir '${PREFIX}/var/lib/lxc/${CONTAINER}/rootfs/tmp/.X11-unix' 2>/dev/null; umount '${PREFIX}/var/lib/lxc/${CONTAINER}/rootfs/tmp/.X11-unix' 2>/dev/null; mount --bind '${PREFIX}/tmp/.X11-unix' '${PREFIX}/var/lib/lxc/${CONTAINER}/rootfs/tmp/.X11-unix'"
 
 unset LD_PRELOAD
+
+sudo lxc-start -n ubuntu
 
 sudo chmod +x /data/data/com.termux/files/home/Termux-LXC/pre-start.sh
 sudo chmod +x /data/data/com.termux/files/home/Termux-LXC/post-stop.sh
@@ -122,8 +123,8 @@ systemctl disable systemd-resolved
 apt-mark hold network-manager
 #apt install -y xfce4 xfce4-session xfce4-terminal dbus-x11
 
-apt install -y mate-desktop-environment mate-terminal mate-tweak
-apt install -y yaru-theme-gtk yaru-theme-icon ubuntu-wallpapers dconf-cli
+apt install -y gnome-shell gnome-shell-extension-ubuntu-dock gnome-shell-extensions gnome-terminal gnome-session
+apt install -y yaru-theme-gtk yaru-theme-icon gnome-tweaks dbus-x11 nautilus
 
 # Update and install necessary packages
 apt update
@@ -132,10 +133,9 @@ apt install -y wget nano squashfuse fuse
 apt install -y snapd
 snap install snap-store
 
-apt install -y software-properties-common
-add-apt-repository ppa:mastag/mesa-turnip-kgsl
-apt update
-apt -y dist-upgrade
+wget https://github.com/Mrcl1450/mesa-turnip/raw/main/build_deb_mesa.sh
+bash build_deb_mesa.sh
+rm build_deb_mesa.sh
 
 echo "MESA_LOADER_DRIVER_OVERRIDE=zink" >> /etc/environment
 echo "VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/freedreno_icd.aarch64.json:/usr/share/vulkan/icd.d/freedreno_icd.armv7l.json" >> /etc/environment
@@ -151,11 +151,15 @@ cat << 'RCL' > /etc/rc.local
 sudo chmod 644 /run/systemd/system/systemd-networkd-wait-online.service.d/10-netplan.conf
 sudo chmod 644 /run/systemd/system/netplan-ovs-cleanup.service
 
+export XDG_SESSION_TYPE=x11
+export XDG_CURRENT_DESKTOP=GNOME
+export GNOME_SHELL_SESSION_MODE=ubuntu
+
 export PULSE_SERVER=127.0.0.1:4713
 pulseaudio --start --load="module-native-protocol-tcp auth-ip-acl=127.0.0.1 auth-anonymous=1" --exit-idle-time=-1
 
 export DISPLAY=:0
-dbus-launch --exit-with-session mate-session &
+dbus-launch --exit-with-session gnome-session &
 
 exit 0
 RCL
@@ -170,6 +174,10 @@ sudo mv setup-lxc.sh /data/data/com.termux/files/usr/tmp/
 #sudo lxc-attach -n ubuntu -- /usr/bin/bash /tmp/setup-lxc.sh
 
 sudo lxc-stop -n ubuntu -k
+
+sudo chmod +x ~/Termux-LXC/startubuntu
+sudo mv ~/Termux-LXC/startubuntu /usr/local/bin/
+
 #sudo lxc-start -n ubuntu -d -F
 
 #Restart Device if no internet
